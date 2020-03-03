@@ -1,0 +1,48 @@
+---
+title: "Cortina-Camila-ADA-homework-2"
+author: "Camila Cortina"
+date: "3/2/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+##Challenge 1
+```{r}
+d<- read_csv("https://raw.githubusercontent.com/difiore/ADA-datasets/master/IMDB-movies.csv", col_names = TRUE)
+
+d<- filter(d, 1920 <= startYear & startYear <= 1979 & runtimeMinutes < 240)
+
+i<- d$startYear
+d$decade <- case_when(
+  i <= 1929 ~ "20s",
+  i <= 1939 ~ "30s",
+  i <= 1949 ~ "40s",
+  i <= 1959 ~ "50s",
+  i <= 1969 ~ "60s",
+  i <= 1979 ~ "70s"
+)
+
+ggplot(d, aes(x = runtimeMinutes)) + geom_histogram(color = "black", fill = "white") + facet_wrap(vars(decade))
+
+results<- group_by(d, decade) %>% summarise(avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = sd(runtimeMinutes, na.rm = TRUE))
+
+n<-100
+d_grouped<- group_by(d, decade)
+s<- sample_n(d_grouped, size = n, replace = FALSE)
+s<- summarise(s, avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = sd(runtimeMinutes, na.rm = TRUE))
+s$se<- (s$sd)/sqrt(100)
+
+print(s)
+print(results) #These estimates are actually very close to the actual population mean 
+
+library(mosaic)
+reps <- 10000
+samp_dist_mean <- do(reps) * mean(~runtimeMinutes, data = sample_n(d, size = n, replace = FALSE)) # sampling distribution
+
+samp_dist_sd <- do(reps) * sd(~runtimeMinutes, data = sample_n(d, size = n, replace = FALSE))
+
+
+```
+
+
+
