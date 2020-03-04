@@ -8,6 +8,7 @@ editor_options:
 ---
 ##Challenge 1
 ```{r}
+library(readr)
 d<- read_csv("https://raw.githubusercontent.com/difiore/ADA-datasets/master/IMDB-movies.csv", col_names = TRUE)
 
 d<- filter(d, 1920 <= startYear & startYear <= 1979 & runtimeMinutes < 240)
