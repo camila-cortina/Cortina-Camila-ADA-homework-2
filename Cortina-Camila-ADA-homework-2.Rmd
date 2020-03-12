@@ -148,7 +148,12 @@ dpois(7, lambda = 18) #probability of hearing exactly 7 calls
 1 - ppois(20, lambda = 18) #probability of hearing 20 or more calls
 plotDist("pois", lambda = 18, xlim = c(0, 40), main = ("Poisson Distribution \n with lambda = 18"), xlab = "Number of titi calls", ylab = "Probability")
 simulation<- rpois(520, lambda = 18)
-histogram(simulation, xlim = c(0,40), xlab = "simulated number of calls") #The simulated results are very similar to the plotted distribution above
+histogram(simulation, xlim = c(0,40), xlab = "simulated number of calls") 
+
+```
+
+```
+The simulated results are very similar to the plotted distribution above
 ```
 
 ##Challenge 3
@@ -196,15 +201,18 @@ qqline(d$years_of_education, col = "gray")
 #One sample
 sample<- sample_n(d_quant_variables, size = 30, replace = FALSE)
 sample_mean<- sapply(sample, FUN = mean)
-sample_mean
+sample_mean #mean of the sample
 sample_sd<- sapply(sample, FUN = sd)
-sample_sd
+sample_sd #standard deviation 
 se_mean <- sample_sd/sqrt(30)
-se_mean
-lower_confidence_interval<- se_mean + qnorm(.025)*sample_sd
+se_mean #standard error of the mean of the sample
+lower_confidence_interval<- sample_mean + qnorm(.025)*se_mean
 lower_confidence_interval
-upper_confidence_interval<- se_mean + qnorm(.975)*sample_sd
+upper_confidence_interval<- sample_mean + qnorm(.975)*se_mean
 upper_confidence_interval
+
+confidence_interval<- c(lower_confidence_interval, upper_confidence_interval)
+confidence_interval
 
 samp_dist_mean <- do(99) * sapply(sample_n(d_quant_variables, size = 30, replace = FALSE), FUN = mean) # sampling distribution
 sample_dist_mean100<- rbind(sample_mean, samp_dist_mean) #combining the two so that the sampling distribution is 100 samples 
