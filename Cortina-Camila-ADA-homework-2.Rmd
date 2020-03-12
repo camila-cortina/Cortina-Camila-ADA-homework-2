@@ -7,43 +7,213 @@ editor_options:
   chunk_output_type: console
 ---
 ##Challenge 1
-```{r}
+```{r, collapse=TRUE}
 library(readr)
+library(dplyr)
+library(tidyverse)
+library(mosaic)
+```
+
+```{r}
 d<- read_csv("https://raw.githubusercontent.com/difiore/ADA-datasets/master/IMDB-movies.csv", col_names = TRUE)
 
-d<- filter(d, 1920 <= startYear & startYear <= 1979 & runtimeMinutes < 240)
-
-i<- d$startYear
-d$decade <- case_when(
-  i <= 1929 ~ "20s",
-  i <= 1939 ~ "30s",
-  i <= 1949 ~ "40s",
-  i <= 1959 ~ "50s",
-  i <= 1969 ~ "60s",
-  i <= 1979 ~ "70s"
-)
+d<- filter(d, 1920 <= startYear & startYear <= 1979 & runtimeMinutes < 240) %>% mutate("decade" = case_when(
+  startYear <= 1929 ~ "20s",
+  startYear <= 1939 ~ "30s",
+  startYear <= 1949 ~ "40s",
+  startYear <= 1959 ~ "50s",
+  startYear <= 1969 ~ "60s",
+  startYear <= 1979 ~ "70s"
+))
 
 ggplot(d, aes(x = runtimeMinutes)) + geom_histogram(color = "black", fill = "white") + facet_wrap(vars(decade))
 
-results<- group_by(d, decade) %>% summarise(avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = sd(runtimeMinutes, na.rm = TRUE))
+#calculates the population variance 
+pop_var <- function(x) {
+  sum((x - mean(x))^2) / (length(x))
+}
 
+#caluculates the population standard deviation 
+pop_sd <- function(x) {
+  sqrt(pop_var(x))
+}
+
+results<- group_by(d, decade) %>% summarise(avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = pop_sd(runtimeMinutes))
+
+#One sample of 100 values
 n<-100
 d_grouped<- group_by(d, decade)
 s<- sample_n(d_grouped, size = n, replace = FALSE)
-s<- summarise(s, avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = sd(runtimeMinutes, na.rm = TRUE))
-s$se<- (s$sd)/sqrt(100)
+s<- summarise(s, avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = pop_sd(runtimeMinutes)) #mean and standard deviation for the one sample
+s$se<- (s$sd)/sqrt(100) #standard error based on the one sample
 
+#One sample
 print(s)
-print(results) #These estimates are actually very close to the actual population mean 
+#Full population mean and standard deviation
+print(results) #These estimates are actually very close to the actual population mean, with the standard error they almost all fall within the actual mean
 
-library(mosaic)
+
 reps <- 10000
-samp_dist_mean <- do(reps) * mean(~runtimeMinutes, data = sample_n(d, size = n, replace = FALSE)) # sampling distribution
+decades<- unique(d$decade)
+list_of_decades<- list(length = 6)
+for(i in decades){
+ list_of_decades[[i]] <- filter(d, decade == i)
+}
 
-samp_dist_sd <- do(reps) * sd(~runtimeMinutes, data = sample_n(d, size = n, replace = FALSE))
 
+d20s<- as.data.frame(list_of_decades$`20s`$runtimeMinutes)
+samples<- list(length = reps)
+sampling_distribution <- vector(length = reps) 
+sample_sd <- vector(length = reps) 
 
+#for the 20's
+d20<- filter(d, decade == "20s")
+for (i in 1:reps) {
+  samples[[i]] <- sample(d20$runtimeMinutes, size = n, replace = FALSE)
+  sampling_distribution[[i]] <- mean(samples[[i]])
+  sample_sd[[i]] <- sd(samples[[i]])
+}
+
+#means and standard deviation for the 20's
+head(sampling_distribution)
+head(sample_sd)
+
+#for the 30's
+d30<- filter(d, decade == "30s")
+for (i in 1:reps) {
+  samples[[i]] <- sample(d30$runtimeMinutes, size = n, replace = FALSE)
+  sampling_distribution[[i]] <- mean(samples[[i]])
+  sample_sd[[i]] <- sd(samples[[i]])
+}
+
+#means and standard deviation for the 30's
+head(sampling_distribution)
+head(sample_sd)
+
+#for the 40's
+d40<- filter(d, decade == "40s")
+for (i in 1:reps) {
+  samples[[i]] <- sample(d40$runtimeMinutes, size = n, replace = FALSE)
+  sampling_distribution[[i]] <- mean(samples[[i]])
+  sample_sd[[i]] <- sd(samples[[i]])
+}
+
+#means and standard deviation for the 40's
+head(sampling_distribution)
+head(sample_sd)
+
+#for the 50's
+d50<- filter(d, decade == "50s")
+for (i in 1:reps) {
+  samples[[i]] <- sample(d50$runtimeMinutes, size = n, replace = FALSE)
+  sampling_distribution[[i]] <- mean(samples[[i]])
+  sample_sd[[i]] <- sd(samples[[i]])
+}
+
+#means and standard deviation for the 50's
+head(sampling_distribution)
+head(sample_sd)
+
+#for the 60's
+d60<- filter(d, decade == "60s")
+for (i in 1:reps) {
+  samples[[i]] <- sample(d60$runtimeMinutes, size = n, replace = FALSE)
+  sampling_distribution[[i]] <- mean(samples[[i]])
+  sample_sd[[i]] <- sd(samples[[i]])
+}
+
+#means and standard deviation for the 60's
+head(sampling_distribution)
+head(sample_sd)
+
+#for the 70's
+d70<- filter(d, decade == "70s")
+for (i in 1:reps) {
+  samples[[i]] <- sample(d70$runtimeMinutes, size = n, replace = FALSE)
+  sampling_distribution[[i]] <- mean(samples[[i]])
+  sample_sd[[i]] <- sd(samples[[i]])
+}
+
+#means and standard deviation for the 70's
+head(sampling_distribution)
+head(sample_sd)
 ```
 
+##Challenge 2
+```{r}
+lambda = 18
+ppois(13, lambda = 18) #probability of hearing 13 or fewer
+dpois(0, lambda = 18) #probability of hearing no calls
+dpois(7, lambda = 18) #probability of hearing exactly 7 calls
+1 - ppois(20, lambda = 18) #probability of hearing 20 or more calls
+plotDist("pois", lambda = 18, xlim = c(0, 40), main = ("Poisson Distribution \n with lambda = 18"), xlab = "Number of titi calls", ylab = "Probability")
+simulation<- rpois(520, lambda = 18)
+histogram(simulation, xlim = c(0,40), xlab = "simulated number of calls") #The simulated results are very similar to the plotted distribution above
+```
+
+##Challenge 3
+```{r}
+d<- read_csv("https://raw.githubusercontent.com/difiore/ADA-datasets/master/zombies.csv", col_names = TRUE)
+
+#means of the quantitative variables
+d_quant_variables<- select(d, height, weight, age, zombies_killed, years_of_education)
+d_means<- sapply(d_quant_variables, FUN = mean)
+d_means
+
+sapply(d_quant_variables, FUN = pop_sd) #calculates the population standard deviation
+
+#scatterplot for height related to age
+ggplot(data = d, aes(x = age, y = height)) + geom_point(na.rm = TRUE) #As age increases the height also increases
+
+#scatterplot for weight related to age
+ggplot(data = d, aes(x = age, y = weight)) + geom_point(na.rm = TRUE) #Weight also increases as age increases, but not as quite as linearly as height does
 
 
+#Are they normally distributed?
+#Histograms
+histogram(~age, data = d, xlab = "age") #normally distributed
+histogram(~height, data = d, xlab = "height") #normally distributed
+histogram(~weight, data = d, xlab = "weight") #normally distributed
+histogram(~zombies_killed, data = d, xlab = "zombies killed") #not normal distribution, Poisson distribution
+histogram(~years_of_education, data = d, xlab = "years of education") #not normal distribution, Poisson distributed
+#Zombies killed and years of education might be beta distributed
+#Q-Q plots
+qqnorm(d$age, main = "QQ plot age")
+qqline(d$age, col = "gray")
+
+qqnorm(d$height, main = "QQ plot height")
+qqline(d$height, col = "gray")
+
+qqnorm(d$weight, main = "QQ plot weight")
+qqline(d$weight, col = "gray")
+
+qqnorm(d$zombies_killed, main = "QQ plot zombies killed")
+qqline(d$zombies_killed, col = "gray")
+
+qqnorm(d$years_of_education, main = "QQ plot years of education")
+qqline(d$years_of_education, col = "gray")
+
+#One sample
+sample<- sample_n(d_quant_variables, size = 30, replace = FALSE)
+sample_mean<- sapply(sample, FUN = mean)
+sample_mean
+sample_sd<- sapply(sample, FUN = sd)
+sample_sd
+se_mean <- sample_sd/sqrt(30)
+se_mean
+lower_confidence_interval<- se_mean + qnorm(.025)*sample_sd
+lower_confidence_interval
+upper_confidence_interval<- se_mean + qnorm(.975)*sample_sd
+upper_confidence_interval
+
+samp_dist_mean <- do(99) * sapply(sample_n(d_quant_variables, size = 30, replace = FALSE), FUN = mean) # sampling distribution
+sample_dist_mean100<- rbind(sample_mean, samp_dist_mean) #combining the two so that the sampling distribution is 100 samples 
+
+#mean and sd of the sampling distribution 
+sapply(sample_dist_mean100, mean) #means of the sampling distribution
+sapply(sample_dist_mean100, sd) #standard deviation of the sampling distribution, these standard deviations are close to the sampling error above, but are not representative of the standard deviation of the original values
+
+histogram(~height, data = sample_dist_mean100)
+histogram(~zombies_killed, data = sample_dist_mean100)
+histogram(~years_of_education, data = sample_dist_mean100) #yes they are now fairly normally distributed
+```
