@@ -25,6 +25,7 @@ d<- filter(d, 1920 <= startYear & startYear <= 1979 & runtimeMinutes < 240) %>% 
   startYear <= 1969 ~ "60s",
   startYear <= 1979 ~ "70s"
 ))
+head(d) #filtered dataset 
 
 ggplot(d, aes(x = runtimeMinutes)) + geom_histogram(color = "black", fill = "white") + facet_wrap(vars(decade))
 
@@ -38,30 +39,26 @@ pop_sd <- function(x) {
   sqrt(pop_var(x))
 }
 
-results<- group_by(d, decade) %>% summarise(avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = pop_sd(runtimeMinutes))
+(results<- group_by(d, decade) %>% summarise(avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = pop_sd(runtimeMinutes)))
 
 #One sample of 100 values
 n<-100
 d_grouped<- group_by(d, decade)
 s<- sample_n(d_grouped, size = n, replace = FALSE)
 s<- summarise(s, avgtime = mean(runtimeMinutes, na.rm = TRUE), sd = pop_sd(runtimeMinutes)) #mean and standard deviation for the one sample
-s$se<- (s$sd)/sqrt(100) #standard error based on the one sample
+s$se<- (s$sd)/sqrt(n) #standard error based on the one sample
 
 #One sample
 print(s)
 #Full population mean and standard deviation
-print(results) #These estimates are actually very close to the actual population mean, with the standard error they almost all fall within the actual mean
+print(results) 
+```
+```
+These estimates are actually very close to the actual population mean, with the standard error they almost all fall within the actual mean
+```
 
-
+```{r}
 reps <- 10000
-decades<- unique(d$decade)
-list_of_decades<- list(length = 6)
-for(i in decades){
- list_of_decades[[i]] <- filter(d, decade == i)
-}
-
-
-d20s<- as.data.frame(list_of_decades$`20s`$runtimeMinutes)
 samples<- list(length = reps)
 sampling_distribution <- vector(length = reps) 
 sample_sd <- vector(length = reps) 
@@ -153,7 +150,7 @@ histogram(simulation, xlim = c(0,40), xlab = "simulated number of calls")
 ```
 
 ```
-The simulated results are very similar to the plotted distribution above
+The simulated results are pretty similar to the plotted distribution above
 ```
 
 ##Challenge 3
@@ -216,6 +213,11 @@ confidence_interval
 
 samp_dist_mean <- do(99) * sapply(sample_n(d_quant_variables, size = 30, replace = FALSE), FUN = mean) # sampling distribution
 sample_dist_mean100<- rbind(sample_mean, samp_dist_mean) #combining the two so that the sampling distribution is 100 samples 
+```
+```
+This standard deviation of the sampling distribution is close to the standard error caclculated above
+```
+```{r}
 
 #mean and sd of the sampling distribution 
 sapply(sample_dist_mean100, mean) #means of the sampling distribution
@@ -223,5 +225,8 @@ sapply(sample_dist_mean100, sd) #standard deviation of the sampling distribution
 
 histogram(~height, data = sample_dist_mean100)
 histogram(~zombies_killed, data = sample_dist_mean100)
-histogram(~years_of_education, data = sample_dist_mean100) #yes they are now fairly normally distributed
+histogram(~years_of_education, data = sample_dist_mean100) 
+```
+```
+For the most part the sampling distributions are normally distributed, but we did only repeat the sampling 100 times, so that are not that accurate all of the time
 ```
